@@ -403,11 +403,32 @@ class _AutoSizeTextState extends State<AutoSizeText> {
       strutStyle: widget.strutStyle,
     );
 
+    final widgetSpans = _findWidgetSpans(text);
+    if (widgetSpans.isNotEmpty) {
+      textPainter.setPlaceholderDimensions(
+        widgetSpans.map((widgetSpan) {
+          return PlaceholderDimensions(
+            size: Size.zero,
+            alignment: widgetSpan.alignment,
+          );
+        }).toList(),
+      );
+    }
+
     textPainter.layout(maxWidth: constraints.maxWidth);
 
     return !(textPainter.didExceedMaxLines ||
         textPainter.height > constraints.maxHeight ||
         textPainter.width > constraints.maxWidth);
+  }
+
+  List<WidgetSpan> _findWidgetSpans(TextSpan text) {
+    final textSpans = text.children?.whereType<TextSpan>().toList() ?? [];
+    final widgetSpans = text.children?.whereType<WidgetSpan>().toList() ?? [];
+    for (var textSpan in textSpans) {
+      widgetSpans.addAll(_findWidgetSpans(textSpan));
+    }
+    return widgetSpans;
   }
 
   Widget _buildText(double fontSize, TextStyle style, int? maxLines) {
